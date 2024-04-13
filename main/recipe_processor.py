@@ -1,6 +1,6 @@
 import json
 
-from Recipe import Recipe
+from recipe import Recipe
 
 
 class RecipeProcessor:
