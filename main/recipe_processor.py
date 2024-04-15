@@ -13,10 +13,12 @@ class RecipeProcessor:
             for recipe_data in recipes_data:
                 recipe = Recipe(
                     recipe_data['name'],
+                    recipe_data['description'],
+                    recipe_data['image'],
+                    recipe_data['recipeYield'],
                     recipe_data['cookTime'],
                     recipe_data['prepTime'],
-                    recipe_data['recipeYield'],
-                    recipe_data['imageURL']
+                    recipe_data['ingredients']
                 )
                 self.recipes.append(recipe)
 
