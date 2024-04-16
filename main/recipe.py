@@ -1,5 +1,8 @@
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QLabel
+import requests
+
 
 def format_time(time_str):
     hours, minutes = time_str.strip("PT").strip("M").split("H")
@@ -45,29 +48,38 @@ class Recipe:
         return self._image
 
     def set_image(self, url):
-        response = requests.get(url, stream=True)
-        total_size = int(response.headers.get('content-length', 0))
-        block_size = 1024  # For downloading progress
+        try:
+            response = requests.get(url, stream=True)
+            total_size = int(response.headers.get('content-length', 0))
+            block_size = 1024  # For downloading progress
 
-        # Testing
-        if total_size == 0:
-            raise ValueError("Invalid URL or empty content")
+            # Testing
+            if total_size == 0:
+                raise ValueError("Invalid URL or empty content")
 
-        # Create QPixmap to display the image
-        pixmap = QPixmap()
+            # Create QPixmap to display the image
+            pixmap = QPixmap()
 
-        # Download the image with progress
-        downloaded_size = 0
-        for data in response.iter_content(block_size):
-            downloaded_size += len(data)
-            pixmap.loadFromData(data)
-            # Update the loading progress in the command line
-            self.progress_bar(downloaded_size, total_size, prefix='Downloading:', suffix='Complete', length=50)
+            # Download the image with progress
+            downloaded_size = 0
+            for data in response.iter_content(block_size):
+                downloaded_size += len(data)
+                pixmap.loadFromData(data)
+                # Update the loading progress in the command line
+                self.progress_bar(downloaded_size, total_size, prefix='Downloading:', suffix='Complete', length=50)
 
-        # Show the image after downloading completes
-        label = QLabel()
-        label.setPixmap(pixmap)
-        label.show()
+            # Show the image after downloading completes
+            label = QLabel()
+            label.setPixmap(pixmap)
+            label.show()
+        except requests.HTTPError as e:
+            print(f"HTTP Error occurred: {e}")
+        except requests.ConnectionError as e:
+            print(f"Connection Error occurred: {e}")
+        except ValueError as e:
+            print(f"ValueError occurred: {e}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
     def progress_bar(self, iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█'):
         percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))

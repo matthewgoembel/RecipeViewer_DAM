@@ -8,7 +8,7 @@ class RecipeProcessor:
         self.recipes = []
 
     def load_recipes(self, json_file):
-        with open(json_file, 'r') as file:
+        with open(json_file, 'r', encoding="utf-8") as file:
             recipes_data = json.load(file)
             for recipe_data in recipes_data:
                 recipe = Recipe(
