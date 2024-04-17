@@ -68,7 +68,22 @@ class Recipe:
 
     def set_image(self, url):
         try:
+            # Init loading Screen
+            ascii_load = ("|  _ \  / \  |  \/  |\n"
+                          "| | | |/ _ \ | |\/| |\n"
+                          "| |_| / ___ \| |  | |\n"
+                          "|____/_/   \_\_|  |_|  ")
+            app_name = ("____           _             __     ___                         \n"
+                        "|  _ \ ___  ___(_)_ __   ___  \ \   / (_) _____      _____ _ __ \n" 
+                        "| |_) / _ \/ __| | '_ \ / _ \  \ \ / /| |/ _ \ \ /\ / / _ \ '__|\n"
+                        "|  _ <  __/ (__| | |_) |  __/   \ V / | |  __/\ V  V /  __/ |   \n"
+                        "|_| \_\___|\___|_| .__/ \___|    \_/  |_|\___| \_/\_/ \___|_|   \n"
+                        "               |_|                                                ")
+
+            print(ascii_load,"\n")
+            print(app_name,"\n")
             print("Downloading Recipe Image: ")
+            
             response = requests.get(url, stream=True)
             total_length = response.headers.get('content-length')
 
