@@ -69,7 +69,8 @@ class Recipe:
     def set_image(self, url):
         try:
             # Init loading Screen
-            ascii_load = ("|  _ \  / \  |  \/  |\n"
+            ascii_load = (" ____    _    __  __ \n"
+                          "|  _ \  / \  |  \/  |\n"
                           "| | | |/ _ \ | |\/| |\n"
                           "| |_| / ___ \| |  | |\n"
                           "|____/_/   \_\_|  |_|  ")
