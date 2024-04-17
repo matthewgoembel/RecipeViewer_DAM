@@ -68,7 +68,7 @@ class Recipe:
 
     def set_image(self, url):
         try:
-            print("Downloading Recipe Image")
+            print("Downloading Recipe Image: ")
             response = requests.get(url, stream=True)
             total_length = response.headers.get('content-length')
 
