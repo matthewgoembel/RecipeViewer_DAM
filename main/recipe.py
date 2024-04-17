@@ -5,23 +5,42 @@ import requests
 
 
 def format_time(time_str):
-    hours, minutes = time_str.strip("PT").strip("M").split("H")
-    hours = int(hours)
-    minutes = int(minutes)
-    return f"{hours:02d}:{minutes:02d}"
+    if time_str != '':
+        # Split the string at 'H' if present, then split the second part at 'M'
+        parts = time_str.split('H')[-1].split('M')
+
+        # Extract hours and minutes from the split parts
+        hours = 0
+        minutes = 0
+        if len(parts) > 1:
+            if len(parts) == 2:
+                minutes = int(''.join(filter(str.isdigit, parts[0])))
+            else:
+                hours = int(''.join(filter(str.isdigit, parts[0])))
+                minutes = int(''.join(filter(str.isdigit, parts[1])))
+
+        # Format the hours and minutes as strings with leading zeros
+        return f"{hours:02d}:{minutes:02d}"
+    else:
+        return "00:00"
+
 
 class Recipe:
-    def __init__(self, name, description, image_url, recipe_yield, cook_time, prep_time, ingredients):
-        self._image = None
+    recipe_number_counter = 1
 
+    def __init__(self, name, description, image_url, recipe_yield, cook_time, prep_time, ingredients):
+        self._recipe_number = self.recipe_number_counter
+        Recipe.recipe_number_counter += 1
         self._name = name
         self._description = description
         self._recipe_yield = recipe_yield
         self._cook_time = cook_time
         self._prep_time = prep_time
         self._ingredients = ingredients
+        self._image = self.set_image(image_url)
 
-        self.set_image(image_url)
+    def get_recipe_number(self):
+        return self._recipe_number
 
     def get_name(self):
         return self._name
@@ -34,11 +53,11 @@ class Recipe:
 
     def get_cook_time(self):
         # Implement cook time formatting
-        return format_time(self.cook_time)
+        return format_time(self._cook_time)
 
     def get_prep_time(self):
         # Implement prep time formatting
-        return format_time(self.prep_time)
+        return format_time(self._prep_time)
 
     def get_ingredients(self):
         return self._ingredients
@@ -62,16 +81,17 @@ class Recipe:
 
             # Download the image with progress
             downloaded_size = 0
+            image_data = b''  # Initialize image data
             for data in response.iter_content(block_size):
                 downloaded_size += len(data)
-                pixmap.loadFromData(data)
+                image_data += data
                 # Update the loading progress in the command line
                 self.progress_bar(downloaded_size, total_size, prefix='Downloading:', suffix='Complete', length=50)
 
-            # Show the image after downloading completes
-            label = QLabel()
-            label.setPixmap(pixmap)
-            label.show()
+            # Load image data into QPixmap
+            pixmap.loadFromData(image_data)
+            return pixmap
+
         except requests.HTTPError as e:
             print(f"HTTP Error occurred: {e}")
         except requests.ConnectionError as e:
