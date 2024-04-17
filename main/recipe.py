@@ -68,29 +68,29 @@ class Recipe:
 
     def set_image(self, url):
         try:
+            print("Downloading Recipe Image")
             response = requests.get(url, stream=True)
-            total_size = int(response.headers.get('content-length', 0))
-            block_size = 1024  # For downloading progress
+            total_length = response.headers.get('content-length')
 
-            # Testing
-            if total_size == 0:
-                raise ValueError("Invalid URL or empty content")
+            if total_length is None:  # no content length header
+                return None
 
-            # Create QPixmap to display the image
-            pixmap = QPixmap()
-
-            # Download the image with progress
-            downloaded_size = 0
-            image_data = b''  # Initialize image data
-            for data in response.iter_content(block_size):
-                downloaded_size += len(data)
-                image_data += data
-                # Update the loading progress in the command line
-                self.progress_bar(downloaded_size, total_size, prefix='Downloading:', suffix='Complete', length=50)
-
-            # Load image data into QPixmap
-            pixmap.loadFromData(image_data)
-            return pixmap
+            else:
+                # Create QPixmap to display the image
+                pixmap = QPixmap()
+                # Download the image with progress
+                dl = 0
+                total_length = int(total_length)
+                progress_bar_length = total_length // 1024  # Adjust this to suit your progress bar size
+                with tqdm(total=progress_bar_length, unit='KB', file=sys.stdout) as pbar:
+                    with open(url.split('/')[-1], "wb") as f:
+                        for data in response.iter_content(chunk_size=4096):
+                            dl += len(data)
+                            f.write(data)
+                            pbar.update(len(data) // 1024)  # Update progress bar
+                # Load image data into QPixmap
+                pixmap.loadFromData(open(url.split('/')[-1], "rb").read())
+                return pixmap
 
         except requests.HTTPError as e:
             print(f"HTTP Error occurred: {e}")
@@ -100,11 +100,3 @@ class Recipe:
             print(f"ValueError occurred: {e}")
         except Exception as e:
             print(f"An error occurred: {e}")
-
-    def progress_bar(self, iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█'):
-        percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-        filledLength = int(length * iteration // total)
-        bar = fill * filledLength + '-' * (length - filledLength)
-        print(f'\r{prefix} |{bar}| {percent}% {suffix}', end='', flush=True)
-        if iteration == total:
-            print()
