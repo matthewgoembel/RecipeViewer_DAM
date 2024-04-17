@@ -80,7 +80,7 @@ class Recipe:
                         "|_| \_\___|\___|_| .__/ \___|    \_/  |_|\___| \_/\_/ \___|_|   \n"
                         "               |_|                                                ")
 
-            print(ascii_load,"\n")
+            print(" "*50, ascii_load,"\n")
             print(app_name,"\n")
             print("Downloading Recipe Image: ")
             
