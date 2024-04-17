@@ -17,6 +17,7 @@ class RecipeUI(QMainWindow):
         recipe_processor = RecipeProcessor()
         recipe_processor.load_recipes(r"../recipe_data/recipes.json")
         self.recipe_list = recipe_processor.get_recipes()
+        self.filtered_recipes = self.recipe_list
         self.total_recipe_count = len(self.recipe_list)
         self.layout_ui()  # Set up the UI layout
         self.recipe_widget_list = self.populate_recipe_cards()
@@ -164,6 +165,7 @@ class RecipeUI(QMainWindow):
         self.next_button.clicked.connect(self.next)
         self.prev_button.clicked.connect(self.previous)
         self.reset_button.clicked.connect(self.reset)
+        self.search_button.clicked.connect(self.search)
 
         # Connect search line edit's returnPressed signal to search method
         self.search_line.returnPressed.connect(self.search)
@@ -173,7 +175,7 @@ class RecipeUI(QMainWindow):
 
         self.display_recipe_count_label.setText(
             f"Displaying 1-{self.recipes_per_page} of {self.total_recipe_count} recipes")
-        for recipe in self.recipe_list:
+        for recipe in self.filtered_recipes:
             # Make recipe card layouts
             recipe_card = QWidget()
             recipe_card_layout = QVBoxLayout(recipe_card)
@@ -224,7 +226,7 @@ class RecipeUI(QMainWindow):
             recipe_name_info = QLabel(recipe.get_name())
             recipe_name_info.setFrameShape(QFrame.Panel)
             recipe_name_info.setFrameShadow(QFrame.Sunken)
-            recipe_name_info.setSizePolicy(QSizePolicy)
+            recipe_name_info.setSizePolicy(QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum))
             recipe_name_info.setWordWrap(True)
 
             # Prep time
@@ -341,9 +343,31 @@ class RecipeUI(QMainWindow):
 
     def search(self):
         # Search for recipes containing keywords
-        search_text = self.search_line.text()
+        search_text = self.search_line.text().lower()
+        if search_text:
+            # find all recipes that contain the keyword in the recipe name, description, or ingredients
+            self.filtered_recipes = [
+                recipe for recipe in self.recipe_list if
+                search_text in recipe.get_name().lower() or
+                search_text in recipe.get_description().lower() or
+                any(search_text in ingredient.lower() for ingredient in recipe.get_ingredients())
+                ]
 
+            self.total_recipe_count = len(self.filtered_recipes)
+
+            self.current_page = 1
+
+            self.recipe_widget_list = self.populate_recipe_cards()
+            self.update_recipe_layout(self.recipe_widget_list[:self.recipes_per_page + 1],
+                                      0, self.recipes_per_page)
+        else:
+            self.reset()
     def reset(self):
         # Clear search results and return to normal pagination
         self.search_line.setText('')
+
+        self.filtered_recipes = self.recipe_list
+        self.total_recipe_count = len(self.filtered_recipes)
+        self.recipe_widget_list = self.populate_recipe_cards()
+
         self.first()
