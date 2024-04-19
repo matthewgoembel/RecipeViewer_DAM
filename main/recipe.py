@@ -1,6 +1,4 @@
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QLabel
 import requests
 
 
@@ -67,52 +65,16 @@ class Recipe:
         return self._image
 
     def set_image(self, url):
-        try:
-            # Init loading Screen
-            ascii_load = (" ____    _    __  __ \n"
-                          "|  _ \  / \  |  \/  |\n"
-                          "| | | |/ _ \ | |\/| |\n"
-                          "| |_| / ___ \| |  | |\n"
-                          "|____/_/   \_\_|  |_|  ")
-            app_name = ("____           _             __     ___                         \n"
-                        "|  _ \ ___  ___(_)_ __   ___  \ \   / (_) _____      _____ _ __ \n" 
-                        "| |_) / _ \/ __| | '_ \ / _ \  \ \ / /| |/ _ \ \ /\ / / _ \ '__|\n"
-                        "|  _ <  __/ (__| | |_) |  __/   \ V / | |  __/\ V  V /  __/ |   \n"
-                        "|_| \_\___|\___|_| .__/ \___|    \_/  |_|\___| \_/\_/ \___|_|   \n"
-                        "               |_|                                                ")
+        response = requests.get(url, stream=True)
 
-            print(ascii_load,"\n")
-            print(app_name,"\n")
-            print("Downloading Recipe Image: ")
-            
-            response = requests.get(url, stream=True)
-            total_length = response.headers.get('content-length')
+        # Create QPixmap to display the image
+        pixmap = QPixmap()
 
-            if total_length is None:  # no content length header
-                return None
+        # Download the image
+        image_data = b''  # Initialize image data
+        for data in response:
+            image_data += data
 
-            else:
-                # Create QPixmap to display the image
-                pixmap = QPixmap()
-                # Download the image with progress
-                dl = 0
-                total_length = int(total_length)
-                progress_bar_length = total_length // 1024  # Adjust this to suit your progress bar size
-                with tqdm(total=progress_bar_length, unit='KB', file=sys.stdout) as pbar:
-                    with open(url.split('/')[-1], "wb") as f:
-                        for data in response.iter_content(chunk_size=4096):
-                            dl += len(data)
-                            f.write(data)
-                            pbar.update(len(data) // 1024)  # Update progress bar
-                # Load image data into QPixmap
-                pixmap.loadFromData(open(url.split('/')[-1], "rb").read())
-                return pixmap
-
-        except requests.HTTPError as e:
-            print(f"HTTP Error occurred: {e}")
-        except requests.ConnectionError as e:
-            print(f"Connection Error occurred: {e}")
-        except ValueError as e:
-            print(f"ValueError occurred: {e}")
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        # Load image data into QPixmap
+        pixmap.loadFromData(image_data)
+        return pixmap

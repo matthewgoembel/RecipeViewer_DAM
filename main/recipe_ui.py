@@ -32,7 +32,7 @@ class RecipeUI(QMainWindow):
         Set up properties for the main window.
         """
         self.setWindowTitle("Recipe Viewer")
-        self.setMinimumSize(900, 840)
+        self.setMinimumSize(900, 920)
         self.setAutoFillBackground(False)
         # Set background color
         self.setStyleSheet(
@@ -117,6 +117,7 @@ class RecipeUI(QMainWindow):
 
         # Create search line edit widget
         self.search_line = QLineEdit(self.central_widget)
+        self.search_line.setFocus()
         self.search_line.setSizePolicy(QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum))
         self.search_line.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.search_bar_layout.addWidget(self.search_line)
@@ -226,7 +227,7 @@ class RecipeUI(QMainWindow):
             recipe_name_info = QLabel(recipe.get_name())
             recipe_name_info.setFrameShape(QFrame.Panel)
             recipe_name_info.setFrameShadow(QFrame.Sunken)
-            recipe_name_info.setSizePolicy(QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum))
+            recipe_name_info.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
             recipe_name_info.setWordWrap(True)
 
             # Prep time
@@ -264,19 +265,15 @@ class RecipeUI(QMainWindow):
             recipe_card_layout.addLayout(recipe_info_form_layout)
             recipe_widget_list.append(recipe_card)
 
-        print("Recipe widget list:", recipe_widget_list)  # Debug print
         return recipe_widget_list
 
     def update_recipe_layout(self, recipes, start_index, end_index):
         """
         Update the layout with a new set of recipes.
         """
-        print("Recipes: ", recipes)
         self.display_recipe_count_label.clear()
         self.display_recipe_count_label.setText(
             f"Displaying {start_index + 1}-{end_index} of {self.total_recipe_count} recipes")
-
-        print("Before removing widgets. Count:", self.recipe_grid_layout.count())  # Debug print
 
         # Clear the layout
         while self.recipe_grid_layout.count():
@@ -285,19 +282,14 @@ class RecipeUI(QMainWindow):
             if widget:
                 widget.hide()  # Hide the widget instead of deleting it
 
-        print("After removing widgets. Count:", self.recipe_grid_layout.count())  # Debug print
         max_widgets = min(len(recipes), self.recipes_per_page)
-        print("Max widget = ", max_widgets)
 
         row = 0
         col = 0
         for i in range(max_widgets):
             recipe_widget = recipes[i]
-            print("Adding widget at row:", row, "col:", col)  # Debug print
-            print("Recipe widget: ", recipe_widget)
             self.recipe_grid_layout.addWidget(recipe_widget, row, col)
             recipe_widget.show()  # Make sure the widget is visible
-            print("Got added")
             col += 1
             if col == 4:
                 col = 0
@@ -309,7 +301,7 @@ class RecipeUI(QMainWindow):
     def next(self):
         # Display next set of recipes
         first_index = (self.current_page * self.recipes_per_page)
-        last_index = min(first_index + self.recipes_per_page + 1, self.total_recipe_count)
+        last_index = min(first_index + self.recipes_per_page, self.total_recipe_count)
         if last_index < self.total_recipe_count:
             self.current_page += 1
             self.update_recipe_layout(self.recipe_widget_list[first_index:last_index],
@@ -354,7 +346,7 @@ class RecipeUI(QMainWindow):
                 ]
 
             self.total_recipe_count = len(self.filtered_recipes)
-
+            self.recipes_per_page = min(self.recipes_per_page, self.total_recipe_count)
             self.current_page = 1
 
             self.recipe_widget_list = self.populate_recipe_cards()
@@ -362,12 +354,14 @@ class RecipeUI(QMainWindow):
                                       0, self.recipes_per_page)
         else:
             self.reset()
+
     def reset(self):
         # Clear search results and return to normal pagination
         self.search_line.setText('')
 
         self.filtered_recipes = self.recipe_list
         self.total_recipe_count = len(self.filtered_recipes)
+        self.recipes_per_page = 8
         self.recipe_widget_list = self.populate_recipe_cards()
 
         self.first()
