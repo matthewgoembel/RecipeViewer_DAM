@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
 )
 
 from recipe_processor import RecipeProcessor
+from recipe_details import RecipeDetails
 
 
 class RecipeUI(QMainWindow):
@@ -183,6 +184,7 @@ class RecipeUI(QMainWindow):
             recipe_card_layout.setContentsMargins(0, 0, 0, 0)
             recipe_card_layout.setSpacing(7)
             recipe_card.setMinimumSize(200, 300)
+            recipe_card.setMaximumSize(600, 700)
 
             # Set the recipe images
             recipe_image = QLabel(self)
@@ -259,6 +261,9 @@ class RecipeUI(QMainWindow):
             view_recipe_button.setStyleSheet("background-color: rgb(255, 255, 255);")
             view_recipe_button.setFixedSize(100, 20)
             view_recipe_button.setContentsMargins(0, 15, 20, 15)
+
+            view_recipe_button.clicked.connect(lambda checked, r=recipe: self.view_recipe(r))
+
             recipe_info_form_layout.addRow(h_spacer, view_recipe_button)
 
             # Add the new components to the layout and add that to the widget list
@@ -365,3 +370,7 @@ class RecipeUI(QMainWindow):
         self.recipe_widget_list = self.populate_recipe_cards()
 
         self.first()
+
+    def view_recipe(self, recipe):
+        dialog = RecipeDetails(recipe, self)
+        dialog.exec_()
